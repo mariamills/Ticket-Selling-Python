@@ -9,7 +9,7 @@ This application is a modern GUI-based ticket selling application for concert ve
 project_root/
 │
 ├── frames/
-│   ├── kogin.py
+│   ├── login.py
 │   ├── 
 │   └── 
 │
