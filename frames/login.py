@@ -1,5 +1,9 @@
 import customtkinter as ctk
+import threading
+from network import client
 
+HOST = "localhost"
+PORT = 9999
 
 class Login(ctk.CTkFrame):
     """login frame"""
@@ -30,6 +34,28 @@ class Login(ctk.CTkFrame):
         button = ctk.CTkButton(self, text="Login", command=self._login_command)
         button.pack(pady=20, padx=20)
 
-    # TODO: implement login functionality
+    # login operation (threaded)
+    def login_operation(self):
+        # get the username and password from the entries
+        username = self.entry1.get()
+        password = self.entry2.get()
+
+        # send the username and password to the server
+        response = client.login(username, password)
+
+        # print the response (testing)
+        print("response:", response)
+
+        # if login successful, switch to the home frame (testing)
+        if response == "Login successful":
+            self.app_state.username = username
+            # after 0ms, switch to the home frame, 'after' is a tkinter method to schedule a function to run on the main GUI thread
+            self.after(0, self.switch_frame, "Home")
+            print("Login successful - switching to home frame")
+
+    # login command
     def _login_command(self):
-        print("Login")
+        # start the login operation in a new thread (to avoid GUI freezing)
+        threading.Thread(target=self.login_operation).start()
+
+
