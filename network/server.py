@@ -2,6 +2,7 @@
 import socket
 import threading
 
+# TODO: add as .env variables
 HOST = "localhost"
 PORT = 9999
 

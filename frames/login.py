@@ -2,9 +2,6 @@ import customtkinter as ctk
 import threading
 from network import client
 
-HOST = "localhost"
-PORT = 9999
-
 class Login(ctk.CTkFrame):
     """login frame"""
 
@@ -12,6 +9,7 @@ class Login(ctk.CTkFrame):
         super().__init__(master)
         self.app_state = app_state
         self.switch_frame = switch_frame
+
 
         self._create_widgets()
 
@@ -32,7 +30,11 @@ class Login(ctk.CTkFrame):
 
         # Login button
         button = ctk.CTkButton(self, text="Login", command=self._login_command)
-        button.pack(pady=20, padx=20)
+        button.pack(pady=10, padx=20)
+
+        # Register button
+        button = ctk.CTkButton(self, text="Register", command=self._register_command)
+        button.pack(pady=10, padx=20)
 
     # login operation (threaded)
     def login_operation(self):
@@ -52,10 +54,19 @@ class Login(ctk.CTkFrame):
             # after 0ms, switch to the home frame, 'after' is a tkinter method to schedule a function to run on the main GUI thread
             self.after(0, self.switch_frame, "Home")
             print("Login successful - switching to home frame")
+        else:
+            # TODO: show a message box saying that the login failed
+            print("MessageBox: Login failed")
 
     # login command
     def _login_command(self):
         # start the login operation in a new thread (to avoid GUI freezing)
         threading.Thread(target=self.login_operation).start()
+
+    # register command
+    def _register_command(self):
+        # after 0ms, switch to the register frame
+        self.after(0, self.switch_frame, "Register")
+        print("Switching to register frame")
 
 

@@ -1,6 +1,7 @@
 # TCP Client Socket
 import socket
 
+# TODO: add as .env variables
 HOST = "localhost"
 PORT = 9999
 
@@ -21,3 +22,7 @@ def login(username, password):
         return f"Connection error: {err}"
     finally:
         client.close()
+
+def register(username, password):
+    # TODO: implement register
+    print("Registered")
