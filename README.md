@@ -10,7 +10,8 @@ project_root/
 │
 ├── frames/
 │   ├── login.py
-│   ├── 
+│   ├── home.py
+│   ├── register.py
 │   └── 
 │
 ├── network/
