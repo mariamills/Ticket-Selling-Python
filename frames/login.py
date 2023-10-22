@@ -10,7 +10,6 @@ class Login(ctk.CTkFrame):
         self.app_state = app_state
         self.switch_frame = switch_frame
 
-
         self._create_widgets()
 
     def _create_widgets(self):
