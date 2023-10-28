@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS users(
           email TEXT NOT NULL,
           username TEXT NOT NULL UNIQUE,
           password TEXT NOT NULL,
-          funds REAL NOT NULL DEFAULT 450.00
+          funds REAL NOT NULL DEFAULT 450.00,
+          admin INTEGER NOT NULL DEFAULT 0
 )
 """)
 
@@ -44,8 +45,11 @@ CREATE TABLE IF NOT EXISTS transactions(
 """)
 
 # Users
+c.execute("INSERT INTO users (first_name, last_name, email, username, password, admin) VALUES (?, ?, ?, ?, ?, ?)",
+          ('admin', 'admin', 'admin@admin.com', 'admin', 'admin', 1))
+
 c.execute("INSERT INTO users (first_name, last_name, email, username, password) VALUES (?, ?, ?, ?, ?)",
-          ('admin', 'admin', 'admin@admin.com', 'admin', 'admin'))
+          ('john', 'doe', 'john@doe.com', 'john', 'doe123'))
 
 
 # Tickets

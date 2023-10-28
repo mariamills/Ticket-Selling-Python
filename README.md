@@ -19,6 +19,11 @@ project_root/
 │   ├── client.py
 │   └── server.py
 │
+├── db/
+│   ├── __init__.py
+│   └── projectDB.py
+│
+│
 ├── main.py
 └── 
 ```
@@ -27,4 +32,6 @@ project_root/
 - __network/__: This directory contains all the networking-related code
     - __client.py__: This file contains the client-side socket code
     - __server.py__: This file contains the server-side socket code
+- __db/__: This directory contains all the database-related code
+    - __projectDB.py__: This file contains the database code for table creation and insertion
 - __main.py__: This is the main entry point for our application

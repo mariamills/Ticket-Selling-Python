@@ -34,6 +34,11 @@ def establish_connection(client):
                 handle_login(client, data)
             case "register":
                 handle_register(client, data)
+            case "admin_check":
+                handle_admin_check(client, data)
+            case "logout":
+                handle_logout(client)
+                return  # return to close the thread
             case _:
                 print("Invalid command")
 
@@ -88,7 +93,28 @@ def handle_register(client, data):
         print("Register successful on server - sending success message to client")
         client.send("Register successful".encode())
 
+# handle admin check - check if the user is an admin
+def handle_admin_check(client, data):
+    with sqlite3.connect(DB_PATH) as conn:
+        c = conn.cursor()
+        # execute the query, data is a tuple with one element, so we need to add a comma after the element
+        # sqlite expects a tuple (or list), even if there is only one element
+        c.execute("SELECT admin FROM users WHERE username = ?", (data,))
+        admin_status = c.fetchone()
+        print("ADMIN STATUS_:", admin_status)
+        if admin_status[0] == 1:
+            response = "ADMIN"
+            print("ADMIN STATUS RESPONSE:", response)
+            client.send(response.encode())
+        else:
+            client.send("USER".encode())
 
+def handle_logout(client):
+    print("Client requested logout, closing connection")
+    client.close()
+    print("Connection closed for client")
+
+# Continuously listen for connections from clients
 while True:
     # accept the connection from the client
     client, IPaddress = server.accept()

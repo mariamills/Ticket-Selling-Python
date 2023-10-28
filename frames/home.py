@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from network import client
 
 class Home(ctk.CTkFrame):
     """home frame"""
@@ -28,10 +29,23 @@ class Home(ctk.CTkFrame):
         button = ctk.CTkButton(self, text="View My Tickets", command=self._view_tickets_command)
         button.pack(pady=20, padx=20)
 
+        # Admin Panel button - only show if the user is an admin
+        self._update_ui_for_admin()
 
         # Logout button
         button = ctk.CTkButton(self, text="Logout", command=self._logout_command)
         button.pack(pady=20, padx=20)
+
+    # Admin Home (Dashboard) label
+    def _update_ui_for_admin(self):
+        if self.app_state.is_admin:
+            button = ctk.CTkButton(self, text="Admin Dashboard", command=self._admin_command)
+            button.pack(pady=20, padx=20)
+
+    def _admin_command(self):
+        self.after(0, self.switch_frame, "Admin")
+        print("Switching to admin frame")
+
 
     # buy ticket command
     def _buy_tickets_command(self):
@@ -50,3 +64,4 @@ class Home(ctk.CTkFrame):
         # after 0ms, switch to the login frame
         self.after(0, self.switch_frame, "Login")
         print("Logout successful - switching to login frame")
+        client.logout()

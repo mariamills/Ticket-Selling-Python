@@ -13,10 +13,13 @@ PORT = int(os.getenv("DB_PORT"))
 # commands
 LOGIN_COMMAND = "login"
 REGISTER_COMMAND = "register"
+ADMIN_CHECK_COMMAND = "admin_check"
+
 
 def send_command(client, command, message):
     message = f"{command}\n{message}"
     client.send(message.encode())
+
 
 # login function - returns a response from the server
 def login(username, password):
@@ -46,6 +49,7 @@ def login(username, password):
     finally:
         client.close()
 
+
 def register(first_name, last_name, email, username, password):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
@@ -64,4 +68,44 @@ def register(first_name, last_name, email, username, password):
         return f"Connection error: {err}"
     finally:
         client.close()
+
+
+# check if the user is an admin
+def admin_check(username):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        client.connect((HOST, PORT))
+
+        message = f"{username}"
+
+        send_command(client, ADMIN_CHECK_COMMAND, message)
+
+        response = client.recv(1024).decode()
+        if response.startswith("admin:"):
+            admin_status = response.split(":")[1]
+            print("Admin status:", admin_status)
+        else:
+            print(response)
+
+        return response
+
+    except socket.error as err:
+        print(f"Connection error: {err}")
+        return f"Connection error: {err}"
+    finally:
+        client.close()
+
+
+# logout - closes the client socket connection to the server
+def logout():
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        client.connect((HOST, PORT))
+        send_command(client, "logout", "")
+        print("Sent logout command to server")
+    except socket.error as err:
+        print(f"Connection error: {err}")
+    finally:
+        client.close()
+
 

@@ -4,7 +4,6 @@ from network import client
 
 class Login(ctk.CTkFrame):
     """login frame"""
-
     def __init__(self, master, switch_frame, app_state):
         super().__init__(master)
         self.app_state = app_state
@@ -50,6 +49,9 @@ class Login(ctk.CTkFrame):
         # if login successful, switch to the home frame (testing)
         if response == "Login successful":
             self.app_state.username = username
+            # check if the user is an admin
+            if client.admin_check(username) == "ADMIN":
+                self.app_state.is_admin = True
             # after 0ms, switch to the home frame, 'after' is a tkinter method to schedule a function to run on the main GUI thread
             self.after(0, self.switch_frame, "Home")
             print("Login successful - switching to home frame")
