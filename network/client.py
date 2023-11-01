@@ -14,9 +14,10 @@ PORT = int(os.getenv("DB_PORT"))
 LOGIN_COMMAND = "login"
 REGISTER_COMMAND = "register"
 ADMIN_CHECK_COMMAND = "admin_check"
+GET_TICKETS_COMMAND = "get_tickets"
 
 
-def send_command(client, command, message):
+def send_command(client, command, message=""):
     message = f"{command}\n{message}"
     client.send(message.encode())
 
@@ -96,6 +97,32 @@ def admin_check(username):
         client.close()
 
 
+# update for viewing tickets
+def get_tickets():
+    # create a client socket
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        # connect to the server
+        client.connect((HOST, PORT))
+
+        # send the login command
+        send_command(client, GET_TICKETS_COMMAND)
+
+        # receive the response from the server
+        response = client.recv(1024).decode()
+
+        # print out the response (testing)
+        print("From client.py - View Tickets:", response)
+        return response
+
+    except socket.error as err:
+        print(f"Connection error: {err}")
+        return f"Connection error: {err}"
+
+    finally:
+        client.close()
+
+
 # logout - closes the client socket connection to the server
 def logout():
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -107,5 +134,3 @@ def logout():
         print(f"Connection error: {err}")
     finally:
         client.close()
-
-

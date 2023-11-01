@@ -2,16 +2,19 @@ import customtkinter as ctk
 from frames.login import Login
 from frames.home import Home
 from frames.register import Register
+from frames.buy_tickets import BuyTickets
 from frames.admin import Admin
 
-WINDOW_SIZE = "700x500"
+WINDOW_SIZE = "900x600"
+
 
 class AppState:
     """class to hold the state of the application"""
     def __init__(self):
         self.username = None  # Current username
         self.is_admin = False  # Is the current user an admin? Default to False
-        self.frames = {'Login': Login, 'Home': Home, 'Register': Register, 'Admin': Admin}  # Available frames
+        self.frames = {'Login': Login, 'Home': Home, 'Register': Register, 'Buy_Tickets': BuyTickets, 'Admin': Admin}  # Available frames
+
 
 def switch_frame(frame_name):
     """switch to a different frame"""
@@ -24,6 +27,7 @@ def switch_frame(frame_name):
     if frame_class:
         frame_instance = frame_class(container_frame, switch_frame, app_state)
         frame_instance.place(relx=0.5, rely=0.5, anchor='c')
+
 
 # initialize app state
 app_state = AppState()

@@ -50,13 +50,13 @@ class Home(ctk.CTkFrame):
     # buy ticket command
     def _buy_tickets_command(self):
         # after 0ms, switch to the buy ticket frame, 'after' is a tkinter method to schedule a function to run on the main GUI thread
-        self.after(0, self.switch_frame, "BuyTickets")
+        self.after(0, self.switch_frame, "Buy_Tickets")
         print("Switching to buy ticket frame")
 
     # view ticket command
     def _view_tickets_command(self):
         # after 0ms, switch to the view ticket frame
-        self.after(0, self.switch_frame, "ViewTickets")
+        self.after(0, self.switch_frame, "View_Tickets")
         print("Switching to view ticket frame")
 
     # logout command

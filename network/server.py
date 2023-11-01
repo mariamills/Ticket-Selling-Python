@@ -19,6 +19,7 @@ server.bind((HOST, PORT))
 server.listen()
 print("Server is ready to recieve")
 
+
 def establish_connection(client):
     print("Connection established with client")
     try:
@@ -34,6 +35,8 @@ def establish_connection(client):
                 handle_login(client, data)
             case "register":
                 handle_register(client, data)
+            case "get_tickets":
+                handle_get_tickets(client)
             case "admin_check":
                 handle_admin_check(client, data)
             case "logout":
@@ -45,6 +48,7 @@ def establish_connection(client):
     # if there is a connection error, print it
     except socket.error as err:
         print(f"Connection error: {err}")
+
 
 # handle login
 def handle_login(client, data):
@@ -68,9 +72,10 @@ def handle_login(client, data):
         print("Login failed on server - sending failure message to client")
         client.send("Login failed".encode())
 
+
 # handle register
 def handle_register(client, data):
-# split the message into first name, last name, email, username, password (separated by a newline)
+    # split the message into first name, last name, email, username, password (separated by a newline)
     first_name, last_name, email, username, password = data.split("\n", 4)
 
     # connect to sqlite database
@@ -88,10 +93,31 @@ def handle_register(client, data):
         client.send("Register failed".encode())
     else:
         # insert the user into the database
-        c.execute("INSERT INTO users (first_name, last_name, email, username, password) VALUES (?, ?, ?, ?, ?)", (first_name, last_name, email, username, password))
+        c.execute("INSERT INTO users (first_name, last_name, email, username, password) VALUES (?, ?, ?, ?, ?)",
+                  (first_name, last_name, email, username, password))
         conn.commit()
         print("Register successful on server - sending success message to client")
         client.send("Register successful".encode())
+
+
+# get all available concert tickets
+def handle_get_tickets(client):
+
+    # connect to sqlite database
+    conn = sqlite3.connect(DB_PATH)
+    # create a cursor
+    c = conn.cursor()
+
+    # get the first 15 concerts
+    c.execute("SELECT * FROM concerts LIMIT 15")
+
+    items = c.fetchall()
+    # convert the list of tuples to a string to send to the client
+    # else the program freezes and crashes
+    str_items = str(items)
+
+    client.send(str_items.encode())
+
 
 # handle admin check - check if the user is an admin
 def handle_admin_check(client, data):
@@ -109,10 +135,12 @@ def handle_admin_check(client, data):
         else:
             client.send("USER".encode())
 
+
 def handle_logout(client):
     print("Client requested logout, closing connection")
     client.close()
     print("Connection closed for client")
+
 
 # Continuously listen for connections from clients
 while True:
