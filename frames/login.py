@@ -49,6 +49,7 @@ class Login(ctk.CTkFrame):
         # if login successful, switch to the home frame (testing)
         if response == "Login successful":
             self.app_state.username = username
+            self.app_state.currency = client.get_currency(username)
             # check if the user is an admin
             if client.admin_check(username) == "ADMIN":
                 self.app_state.is_admin = True

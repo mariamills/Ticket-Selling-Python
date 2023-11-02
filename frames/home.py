@@ -7,7 +7,6 @@ class Home(ctk.CTkFrame):
         super().__init__(master)
         self.app_state = app_state
         self.switch_frame = switch_frame
-
         self._create_widgets()
 
     def _create_widgets(self):
@@ -18,8 +17,8 @@ class Home(ctk.CTkFrame):
         label.pack(pady=20, padx=20)
 
         # Username label
-        label = ctk.CTkLabel(self, text=f"Welcome {self.app_state.username}", font=("Roboto", 16))
-        label.pack(pady=3, padx=5)
+        label = ctk.CTkLabel(self, text=f"Welcome {self.app_state.username}! \n\nYou currently have ${self.app_state.currency} dollars.", font=("Roboto", 16))
+        label.pack(pady=20, padx=5)
 
         # Buy tickets button
         button = ctk.CTkButton(self, text="Buy Tickets", command=self._buy_tickets_command)

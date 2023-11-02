@@ -4,6 +4,7 @@ import threading
 import sqlite3
 import os
 from dotenv import load_dotenv
+from datetime import date
 
 # load the .env file
 load_dotenv()
@@ -35,10 +36,18 @@ def establish_connection(client):
                 handle_login(client, data)
             case "register":
                 handle_register(client, data)
+            case "get_user_tickets":
+                handle_get_user_tickets(client, data)
             case "get_tickets":
                 handle_get_tickets(client)
+            case "buy_ticket":
+                handle_buy_ticket(client, data)
+            case "sell_ticket":
+                handle_sell_ticket(client, data)
             case "admin_check":
                 handle_admin_check(client, data)
+            case "get_currency":
+                handle_get_currency(client, data)
             case "logout":
                 handle_logout(client)
                 return  # return to close the thread
@@ -100,9 +109,41 @@ def handle_register(client, data):
         client.send("Register successful".encode())
 
 
+# get the tickets for the current user
+def handle_get_user_tickets(client, username):
+    # connect to sqlite database
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        # create a cursor
+        c = conn.cursor()
+
+        # get all user's transactions including event_id, total cost, and amount
+        query = """SELECT concerts.event_name, transactions.total, transactions.amount 
+                   FROM transactions 
+                   JOIN concerts ON transactions.event_id = concerts.event_id
+                   WHERE transactions.username = ?"""
+        c.execute(query, (username,))
+        tickets = c.fetchall()
+
+        # Send the data to the client
+        if tickets:
+            # Convert list of tuples to a formatted string
+            tickets_str = "\n".join(f"{event_name}, {total_cost}, {amount}" for event_name, total_cost, amount in tickets)
+            client.send(tickets_str.encode())
+            print("Sent user tickets to client:", tickets_str)
+        else:
+            print("User has no tickets")
+            client.send("No tickets".encode())
+
+    except sqlite3.Error as e:
+        print("Database error:", e)
+        client.send("Server error".encode())
+    finally:
+        conn.close()
+
+
 # get all available concert tickets
 def handle_get_tickets(client):
-
     # connect to sqlite database
     conn = sqlite3.connect(DB_PATH)
     # create a cursor
@@ -117,6 +158,108 @@ def handle_get_tickets(client):
     str_items = str(items)
 
     client.send(str_items.encode())
+
+
+# buy a ticket
+def handle_buy_ticket(client, data):
+    # connect to sqlite database
+    conn = sqlite3.connect(DB_PATH)
+    # create a cursor
+    c = conn.cursor()
+
+    # split the data into event_id and username (separated by a newline)
+    event_id, username = data.split("\n", 1)
+
+    # get the price of the ticket
+    c.execute("SELECT price FROM concerts WHERE event_id = ?", (event_id,))
+    price = c.fetchone()[0]
+
+    # get the user's funds
+    c.execute("SELECT funds FROM users WHERE username = ?", (username,))
+    funds = c.fetchone()[0]
+
+    # check if the user has enough funds to buy the ticket
+    if funds >= price:
+        # subtract the price from the user's funds
+        funds -= price
+
+        # check if the user already has a ticket for this event
+        c.execute("SELECT * FROM transactions WHERE username = ? AND event_id = ?", (username, event_id))
+        existing_ticket = c.fetchone()
+
+        if existing_ticket:
+            # update the amount and total of the existing ticket
+            new_amount = existing_ticket[3] + 1
+            new_total = existing_ticket[4] + price
+            c.execute("UPDATE transactions SET amount = ?, total = ? WHERE username = ? AND event_id = ?",
+                      (new_amount, new_total, username, event_id))
+        else:
+            # add the ticket to the user's tickets
+            c.execute("INSERT INTO transactions (username, event_id, amount, total, date) VALUES (?, ?, ?, ?, ?)",
+                      (username, event_id, 1, price, date.today()))
+
+        # update the user's funds
+        c.execute("UPDATE users SET funds = ? WHERE username = ?", (funds, username))
+        # subtract one from the amount of tickets available
+        c.execute("UPDATE concerts SET amount = amount - 1 WHERE event_id = ?", (event_id,))
+
+        conn.commit()
+        print("Ticket purchased")
+        client.send("Ticket purchased".encode())
+    else:
+        print("Insufficient funds")
+        client.send("Insufficient funds".encode())
+
+    conn.close()
+
+
+# sell a ticket
+def handle_sell_ticket(client, data):
+    print("Received data:", data)
+    # connect to sqlite database
+    conn = sqlite3.connect(DB_PATH)
+    # create a cursor
+    c = conn.cursor()
+
+    # split the data into event name and username (separated by a newline)
+    event_name, username = data.split("\n", 1)
+
+    # get the event_id of the ticket
+    c.execute("SELECT event_id FROM concerts WHERE event_name = ?", (event_name,))
+    event_id = c.fetchone()[0]
+    print("Event ID:", event_id)
+
+    # get the price of the ticket
+    c.execute("SELECT price FROM concerts WHERE event_id = ?", (event_id,))
+    price = c.fetchone()[0]
+
+    # get the user's funds
+    c.execute("SELECT funds FROM users WHERE username = ?", (username,))
+    funds = c.fetchone()[0]
+
+    # add the price to the user's funds
+    funds += price
+    # update the user's funds
+    c.execute("UPDATE users SET funds = ? WHERE username = ?", (funds, username))
+
+    # Check if the user has this ticket in their transactions
+    c.execute("SELECT amount FROM transactions WHERE username = ? AND event_id = ?", (username, event_id))
+    result = c.fetchone()
+    if result:
+        amount = result[0]
+        if amount > 1:
+            # If user has more than one ticket, decrease the amount
+            c.execute("UPDATE transactions SET amount = amount - 1 WHERE username = ? AND event_id = ?",
+                      (username, event_id))
+        else:
+            # If user has only one ticket, delete the transaction
+            c.execute("DELETE FROM transactions WHERE username = ? AND event_id = ?", (username, event_id))
+
+    # add one to the amount of tickets available
+    c.execute("UPDATE concerts SET amount = amount + 1 WHERE event_id = ?", (event_id,))
+    conn.commit()
+    print("Ticket sold")
+    client.send("Ticket sold".encode())
 
 
 # handle admin check - check if the user is an admin
@@ -134,6 +277,14 @@ def handle_admin_check(client, data):
             client.send(response.encode())
         else:
             client.send("USER".encode())
+
+
+def handle_get_currency(client, username):
+    with sqlite3.connect(DB_PATH) as conn:
+        c = conn.cursor()
+        c.execute("SELECT funds FROM users WHERE username = ?", (username,))
+        funds = c.fetchone()[0]
+        client.send(str(funds).encode())
 
 
 def handle_logout(client):

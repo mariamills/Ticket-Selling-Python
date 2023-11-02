@@ -15,6 +15,11 @@ LOGIN_COMMAND = "login"
 REGISTER_COMMAND = "register"
 ADMIN_CHECK_COMMAND = "admin_check"
 GET_TICKETS_COMMAND = "get_tickets"
+GET_USER_TICKETS_COMMAND = "get_user_tickets"
+BUY_TICKET_COMMAND = "buy_ticket"
+SELL_TICKET_COMMAND = "sell_ticket"
+GET_CURRENCY_COMMAND = "get_currency"
+LOGOUT_COMMAND = "logout"
 
 
 def send_command(client, command, message=""):
@@ -123,14 +128,109 @@ def get_tickets():
         client.close()
 
 
+# get tickets for a specific user
+def get_user_tickets(username):
+    # create a client socket
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        # connect to the server
+        client.connect((HOST, PORT))
+
+        # send the login command
+        send_command(client, GET_USER_TICKETS_COMMAND, username)
+
+        # receive the response from the server
+        response = client.recv(1024).decode()
+
+        # print out the response (testing)
+        print("From client.py - View Tickets:", response)
+
+        # Split the response into a list of tickets, and then split each ticket's details
+        ticket_list = [ticket.split(', ') for ticket in response.split('\n') if ticket]
+        return ticket_list
+
+    except socket.error as err:
+        print(f"Connection error: {err}")
+        return f"Connection error: {err}"
+
+    finally:
+        client.close()
+
+
+def buy_ticket(event_id, username):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        client.connect((HOST, PORT))
+
+        message = f"{event_id}\n{username}"
+
+        send_command(client, BUY_TICKET_COMMAND, message)
+
+        response = client.recv(1024).decode()
+        print("From client.py - Buy Ticket:", response)
+
+        # If insufficient funds
+        if response == "Insufficient funds":
+            # TODO: Popup window to notify user
+            print("Insufficient funds - client")
+        else:
+            print("Ticket purchased successfully - client")
+
+        return response
+
+    except socket.error as err:
+        print(f"Connection error: {err}")
+        return f"Connection error: {err}"
+    finally:
+        client.close()
+
+
+# sell ticket
+def sell_ticket(event_name, username):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        client.connect((HOST, PORT))
+
+        message = f"{event_name}\n{username}"
+
+        send_command(client, SELL_TICKET_COMMAND, message)
+
+        response = client.recv(1024).decode()
+        print("From client.py - Sell Ticket:", response)
+        return response
+
+    except socket.error as err:
+        print(f"Connection error: {err}")
+        return f"Connection error: {err}"
+    finally:
+        client.close()
+
+
+def get_currency(username):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        client.connect((HOST, PORT))
+        send_command(client, GET_CURRENCY_COMMAND, username)
+        response = client.recv(1024).decode()
+        print("From client.py - Get Currency:", response)
+        return response
+    except socket.error as err:
+        print(f"Connection error: {err}")
+        return f"Connection error: {err}"
+    finally:
+        client.close()
+
+
 # logout - closes the client socket connection to the server
 def logout():
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         client.connect((HOST, PORT))
-        send_command(client, "logout", "")
+        send_command(client, LOGOUT_COMMAND, "")
         print("Sent logout command to server")
     except socket.error as err:
         print(f"Connection error: {err}")
     finally:
         client.close()
+
+
