@@ -1,6 +1,8 @@
 import customtkinter as ctk
+from CTkMessagebox import CTkMessagebox
 import threading
 from network import client
+
 
 class Login(ctk.CTkFrame):
     """login frame"""
@@ -8,7 +10,6 @@ class Login(ctk.CTkFrame):
         super().__init__(master)
         self.app_state = app_state
         self.switch_frame = switch_frame
-
         self._create_widgets()
 
     def _create_widgets(self):
@@ -43,10 +44,7 @@ class Login(ctk.CTkFrame):
         # send the username and password to the server
         response = client.login(username, password)
 
-        # print the response (testing)
-        print("response:", response)
-
-        # if login successful, switch to the home frame (testing)
+        # if login successful, switch to the home frame
         if response == "Login successful":
             self.app_state.username = username
             self.app_state.currency = client.get_currency(username)
@@ -54,11 +52,13 @@ class Login(ctk.CTkFrame):
             if client.admin_check(username) == "ADMIN":
                 self.app_state.is_admin = True
             # after 0ms, switch to the home frame, 'after' is a tkinter method to schedule a function to run on the main GUI thread
+            # this is needed because customtkinter is not thread safe and the GUI can only be updated on the main thread
+            # since login is a threaded operation, it is not run on the main thread
+            # so without this, the GUI would freeze when switching frames
             self.after(0, self.switch_frame, "Home")
             print("Login successful - switching to home frame")
         else:
-            # TODO: show a message box saying that the login failed
-            print("MessageBox: Login failed")
+            CTkMessagebox(title="Error", message="Login Failed.", icon="cancel")
 
     # login command
     def _login_command(self):
@@ -69,6 +69,5 @@ class Login(ctk.CTkFrame):
     def _register_command(self):
         # after 0ms, switch to the register frame
         self.after(0, self.switch_frame, "Register")
-        print("Switching to register frame")
 
 

@@ -6,6 +6,7 @@ from frames.buy_tickets import BuyTickets
 from frames.view_tickets import ViewTickets
 from frames.admin import Admin
 
+# Size of the root window
 WINDOW_SIZE = "900x600"
 
 
@@ -15,7 +16,15 @@ class AppState:
         self.username = None  # Current username
         self.is_admin = False  # Is the current user an admin? Default to False
         self.currency = None  # Current currency
-        self.frames = {'Login': Login, 'Home': Home, 'Register': Register, 'Buy_Tickets': BuyTickets, 'View_Tickets': ViewTickets, 'Admin': Admin}  # Available frames
+        # Available frames
+        self.frames = {
+            'Login': Login,
+            'Home': Home,
+            'Register': Register,
+            'Buy_Tickets': BuyTickets,
+            'View_Tickets': ViewTickets,
+            'Admin': Admin
+        }
 
 
 def switch_frame(frame_name):

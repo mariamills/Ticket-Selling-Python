@@ -11,10 +11,17 @@ class ViewTickets(ctk.CTkFrame):
         self._create_widgets()
 
     def _create_widgets(self):
+        # Welcome label
         label = ctk.CTkLabel(self, text=f"Hi, {self.app_state.username}, here are your current purchased tickets! 🎫",
                              font=("Roboto", 24))
         label.grid(row=0, column=0, columnspan=8, pady=20, padx=20)
 
+        # Currency label
+        label = ctk.CTkLabel(self, text=f"You currently have ${self.app_state.currency} credit.",
+                             font=("Roboto", 16))
+        label.pack(pady=20, padx=5)
+
+        # Fetch and display user tickets
         user_ticket_data = self.fetch_user_ticket_data()
         self._display_tickets(user_ticket_data)
 
@@ -22,6 +29,7 @@ class ViewTickets(ctk.CTkFrame):
         home_button = ctk.CTkButton(self, text="Home", command=self._home_command)
         home_button.grid(row=20, column=0, columnspan=8, pady=30, padx=20, sticky="s")
 
+    # Fetch user tickets from the client -> server
     def fetch_user_ticket_data(self):
         username = self.app_state.username
         data = client.get_user_tickets(username)
@@ -35,10 +43,11 @@ class ViewTickets(ctk.CTkFrame):
         if isinstance(data, list) and all(isinstance(entry, list) for entry in data):
             return data
 
-        # If data is not in the expected format, handle it
+        # If data is not in the expected format return an empty list
         print("Unexpected data format:", data)
         return []
 
+    # Display user tickets
     def _display_tickets(self, ticket_data):
         # Check if the list is empty or contains 'No tickets'
         if not ticket_data or ticket_data == [['No tickets']]:
@@ -58,13 +67,13 @@ class ViewTickets(ctk.CTkFrame):
             else:
                 displayed_tickets[ticket_id] = ticket_info
 
-        for row_num, (ticket_id, ticket_info) in enumerate(displayed_tickets.items(), start=1):
-            for col_num, detail in enumerate(ticket_info, start=0):
+        for row, (ticket_id, ticket_info) in enumerate(displayed_tickets.items(), start=1):
+            for col, detail in enumerate(ticket_info, start=0):
                 detail_label = ctk.CTkLabel(self, text=detail, font=("Roboto", 20))
-                detail_label.grid(row=row_num, column=col_num, pady=20, padx=20)
+                detail_label.grid(row=row, column=col, pady=20, padx=20)
             sell_button = ctk.CTkButton(self, text="Sell Ticket",
                                         command=lambda ticket=ticket_info: self._sell_ticket_command(ticket))
-            sell_button.grid(row=row_num, column=len(ticket_info))
+            sell_button.grid(row=row, column=len(ticket_info))
 
     def _home_command(self):
         self.after(0, self.switch_frame, "Home")
@@ -81,7 +90,6 @@ class ViewTickets(ctk.CTkFrame):
     def _perform_sell_ticket(self, ticket):
         client.sell_ticket(ticket[0], self.app_state.username)
         self.app_state.currency = client.get_currency(self.app_state.username)
-        # Schedule _create_widgets and switch_frame to be run in the main thread
-        self.after(0, self._create_widgets)
+        # Schedule switch_frame to be run in the main thread
         self.after(0, lambda: self.switch_frame("View_Tickets"))
 

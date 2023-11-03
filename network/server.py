@@ -9,20 +9,24 @@ from datetime import date
 # load the .env file
 load_dotenv()
 
+# get the host and port from the .env file
 HOST = os.getenv("DB_HOST")
 PORT = int(os.getenv("DB_PORT"))
 # path to the database - using the os module to get the path to the project directory, so it works on any machine
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db', 'project.db')
 
+# create the server socket
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+# bind the socket to the host and port
 server.bind((HOST, PORT))
+# listen for connections
 server.listen()
-print("Server is ready to recieve")
+print("Server is ready to receive")
 
 
 def establish_connection(client):
-    print("Connection established with client")
+    """Establish a connection with the client"""
     try:
         # receive the data (username and password) from the client
         message = client.recv(1024).decode()
@@ -53,6 +57,7 @@ def establish_connection(client):
                 return  # return to close the thread
             case _:
                 print("Invalid command")
+                handle_logout(client)
 
     # if there is a connection error, print it
     except socket.error as err:
@@ -280,6 +285,8 @@ def handle_admin_check(client, data):
 
 
 def handle_get_currency(client, username):
+    """Get the user's currency"""
+    # connect to sqlite database
     with sqlite3.connect(DB_PATH) as conn:
         c = conn.cursor()
         c.execute("SELECT funds FROM users WHERE username = ?", (username,))
@@ -288,9 +295,9 @@ def handle_get_currency(client, username):
 
 
 def handle_logout(client):
-    print("Client requested logout, closing connection")
+    """Close the connection with the client"""
     client.close()
-    print("Connection closed for client")
+
 
 
 # Continuously listen for connections from clients
