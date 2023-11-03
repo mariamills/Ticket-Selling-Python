@@ -183,9 +183,9 @@ def handle_buy_ticket(client, data):
             if existing_ticket:
                 # update the amount and total of the existing ticket
                 new_amount = existing_ticket[3] + 1
-                new_total = existing_ticket[4] + price
+                total = existing_ticket[4]
                 c.execute("UPDATE transactions SET amount = ?, total = ? WHERE username = ? AND event_id = ?",
-                          (new_amount, new_total, username, event_id))
+                          (new_amount, total, username, event_id))
             else:
                 # add the ticket to the user's tickets
                 c.execute("INSERT INTO transactions (username, event_id, amount, total, date) VALUES (?, ?, ?, ?, ?)",
@@ -282,7 +282,6 @@ def handle_get_currency(client, username):
 def handle_logout(client):
     """Close the connection with the client"""
     client.close()
-
 
 
 # Continuously listen for connections from clients

@@ -49,15 +49,21 @@ class ViewTickets(ctk.CTkFrame):
 
     # Display user tickets
     def _display_tickets(self, ticket_data):
+        """Displays ticket data in the frame"""
         # Check if the list is empty or contains 'No tickets'
         if not ticket_data or ticket_data == [['No tickets']]:
             label = ctk.CTkLabel(self, text="You have no purchased tickets.", font=("Roboto", 24))
-            label.grid(row=2, column=0, columnspan=8, pady=20, padx=20)
+            label.grid(row=3, column=0, columnspan=8, pady=20, padx=20)
 
             # Buy Tickets button
             buy_button = ctk.CTkButton(self, text="Buy Tickets", command=lambda: self.switch_frame("Buy_Tickets"))
-            buy_button.grid(row=3, column=0, columnspan=8, pady=20, padx=20)
+            buy_button.grid(row=4, column=0, columnspan=8, pady=20, padx=20)
             return
+
+        # create labels for each ticket detail
+        ctk.CTkLabel(self, text="Event Name", font=("Roboto", 20)).grid(row=2, column=0, pady=20, padx=20)
+        ctk.CTkLabel(self, text="Selling Price", font=("Roboto", 20)).grid(row=2, column=1, pady=20, padx=20)
+        ctk.CTkLabel(self, text="Amount Owned", font=("Roboto", 20)).grid(row=2, column=2, pady=20, padx=20)
 
         displayed_tickets = {}
         for ticket_info in ticket_data:
@@ -67,7 +73,7 @@ class ViewTickets(ctk.CTkFrame):
             else:
                 displayed_tickets[ticket_id] = ticket_info
 
-        for row, (ticket_id, ticket_info) in enumerate(displayed_tickets.items(), start=2):  # Start at row 2 to avoid overlapping with labels
+        for row, (ticket_id, ticket_info) in enumerate(displayed_tickets.items(), start=3):  # Start at row 3 to avoid overlapping with labels
             for col, detail in enumerate(ticket_info, start=0):
                 detail_label = ctk.CTkLabel(self, text=detail, font=("Roboto", 20))
                 detail_label.grid(row=row, column=col, pady=20, padx=20)

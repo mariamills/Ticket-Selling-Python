@@ -20,7 +20,7 @@
   - currently have plaintext password
   - we already have SQL Injection patched currently, so maybe add the vulnerability only for the users table?
 
-- Update frame after every ticket purchase (to show the updated ticket count)
-- Add user's current currency to buy ticket frame
-- Add user's current currency to sell ticket frame
-- When selling a ticket, fix the price not being updated correctly
+- ~~Update frame after every ticket purchase (to show the updated ticket count)~~
+- ~~Add user's current currency to buy ticket frame~~
+- ~~Add user's current currency to sell ticket frame~~
+- ~~When selling a ticket, fix the price not being updated correctly~~
