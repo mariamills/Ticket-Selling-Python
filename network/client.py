@@ -167,14 +167,8 @@ def buy_ticket(event_id, username):
         send_command(client, BUY_TICKET_COMMAND, message)
 
         response = client.recv(1024).decode()
+        # TODO: Remove this print statement when done testing
         print("From client.py - Buy Ticket:", response)
-
-        # If insufficient funds
-        if response == "Insufficient funds":
-            # TODO: Popup window to notify user
-            print("Insufficient funds - client")
-        else:
-            print("Ticket purchased successfully - client")
 
         return response
 
