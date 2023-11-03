@@ -56,9 +56,8 @@ class Login(ctk.CTkFrame):
             # since login is a threaded operation, it is not run on the main thread
             # so without this, the GUI would freeze when switching frames
             self.after(0, self.switch_frame, "Home")
-            print("Login successful - switching to home frame")
         else:
-            CTkMessagebox(title="Error", message="Login Failed.", icon="cancel")
+            CTkMessagebox(title="Alert", message="Incorrect Credentials. Login Failed.", icon="warning")
 
     # login command
     def _login_command(self):

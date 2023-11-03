@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from CTkMessagebox import CTkMessagebox
 import threading
 from network import client
 
@@ -63,12 +64,32 @@ class Register(ctk.CTkFrame):
 
         # check if any of the entries are empty
         if first_name == "" or last_name == "" or email == "" or username == "" or password == "" or confirm_password == "":
-            print("MessageBox: All fields must be filled")
+            CTkMessagebox(title="Alert", message="All fields must be filled.", icon="warning")
             return False
 
         # check if the password and confirm password match
         if password != confirm_password:
-            print("MessageBox: Passwords do not match")
+            CTkMessagebox(title="Alert", message="Passwords do not match.", icon="warning")
+            return False
+
+        # check if password is at least 8 characters long
+        if len(password) < 8:
+            CTkMessagebox(title="Alert", message="Password must be at least 8 characters long.", icon="warning")
+            return False
+
+        # check if password is less than 64 characters long
+        if len(password) > 64:
+            CTkMessagebox(title="Alert", message="Password must be less than 64 characters long.", icon="warning")
+            return False
+
+        # check if user is less than 15 characters long
+        if len(username) > 15:
+            CTkMessagebox(title="Alert", message="Username must be less than 15 characters long.", icon="warning")
+            return False
+
+        # check if email is valid
+        if "@" not in email or "." not in email:
+            CTkMessagebox(title="Alert", message="Invalid email.", icon="warning")
             return False
 
         return True
@@ -88,17 +109,13 @@ class Register(ctk.CTkFrame):
 
         # send the username and password to the server
         response = client.register(first_name, last_name, email, username, password)
-        # print the response (testing)
-        print("response:", response)
 
         # if register successful, switch to the login frame (testing)
         if response == "Register successful":
             # after 0ms, switch to the login frame, 'after' is a tkinter method to schedule a function to run on the main GUI thread
             self.after(0, self.switch_frame, "Login")
-            print("Register successful - switching to login frame")
         else:
-            # TODO: add validation & show a message box saying that the register failed
-            print("MessageBox: Register failed")
+            CTkMessagebox(title="Error", message="Registration failed. Try again.", icon="error")
 
 
     def _register_command(self):
@@ -106,4 +123,3 @@ class Register(ctk.CTkFrame):
 
     def _login_command(self):
         self.after(0, self.switch_frame, "Login")
-        print("Switching to login frame")
