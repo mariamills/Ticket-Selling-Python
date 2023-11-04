@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 from network import client
+import threading
 
 
 class BuyTickets(ctk.CTkFrame):
@@ -12,8 +13,8 @@ class BuyTickets(ctk.CTkFrame):
         self._create_widgets()
 
     def _create_widgets(self):
-        ticket_data = self._fetch_ticket_data()
-        self._display_tickets(ticket_data)
+        # Fetch ticket data in a separate thread to avoid UI freezing
+        threading.Thread(target=self._fetch_and_display_tickets, daemon=True).start()
 
         # Available Tickets for purchase label
         label = ctk.CTkLabel(self, text="🎟️Available Tickets for purchase 🎟️", font=("Roboto", 24))
@@ -28,38 +29,54 @@ class BuyTickets(ctk.CTkFrame):
         home_button = ctk.CTkButton(self, text="Home", command=self._home_command)
         home_button.grid(row=20, column=0, columnspan=8, pady=30, padx=20, sticky="s")
 
+    def _fetch_and_display_tickets(self):
+        try:
+            ticket_data = self._fetch_ticket_data()
+            self._display_tickets(ticket_data)
+        except Exception as e:
+            CTkMessagebox(title="Error", message="Error while fetching tickets.", icon="cancel")
+            print(f"Error fetching ticket data: {e}")
+
     def _fetch_ticket_data(self):
         """Fetches ticket data from client (-> server) and returns it as a list of tuples"""
-        data = client.get_tickets()
-        processed_data = []
-        # split the data into a list of tuples (each tuple is a row)
-        for entry in data.split("),"):
-            # remove the extra characters from each entry
-            processed_entry = entry.strip(" [()]").replace("'", "")
-            # split the entry into a list of items (each item is a column)
-            processed_data.append(processed_entry.split(", "))
-        return processed_data
+        try:
+            data = client.get_tickets()
+            processed_data = []
+            # split the data into a list of tuples (each tuple is a row)
+            for entry in data.split("),"):
+                # remove the extra characters from each entry
+                processed_entry = entry.strip(" [()]").replace("'", "")
+                # split the entry into a list of items (each item is a column)
+                processed_data.append(processed_entry.split(", "))
+            return processed_data
+        except Exception as e:
+            print(f"Error while fetching ticket data: {e}")
+            return []
 
     def _display_tickets(self, ticket_data):
-        """Displays ticket data in the frame"""
-        # create labels for each ticket detail
-        ctk.CTkLabel(self, text="Event Name", font=("Roboto", 20)).grid(row=2, column=0, pady=20, padx=20)
-        ctk.CTkLabel(self, text="Price", font=("Roboto", 20)).grid(row=1, column=2, pady=20, padx=20)
-        ctk.CTkLabel(self, text="Amount Available", font=("Roboto", 20)).grid(row=2, column=2, pady=20, padx=20)
-        ctk.CTkLabel(self, text="Date", font=("Roboto", 20)).grid(row=2, column=3, pady=20, padx=20)
+        try:
+            """Displays ticket data in the frame"""
+            # create labels for each ticket detail
+            ctk.CTkLabel(self, text="Event Name", font=("Roboto", 20)).grid(row=2, column=0, pady=20, padx=20)
+            ctk.CTkLabel(self, text="Price", font=("Roboto", 20)).grid(row=2, column=1, pady=20, padx=20)
+            ctk.CTkLabel(self, text="Amount Available", font=("Roboto", 20)).grid(row=2, column=2, pady=20, padx=20)
+            ctk.CTkLabel(self, text="Date", font=("Roboto", 20)).grid(row=2, column=3, pady=20, padx=20)
 
-        # for each ticket (row) in the data
-        for row, ticket_info in enumerate(ticket_data, start=3):  # start at row 3 to avoid overlapping with labels
-            # for each ticket detail (column) in the data (except the id)
-            for col, detail in enumerate(ticket_info[1:], start=0):  # start at col 0
-                # create a label for the ticket detail and add to the grid
-                detail_label = ctk.CTkLabel(self, text=detail, font=("Roboto", 20))
-                detail_label.grid(row=row, column=col, pady=20, padx=20)
+            # for each ticket (row) in the data
+            for row, ticket_info in enumerate(ticket_data, start=3):  # start at row 3 to avoid overlapping with labels
+                # for each ticket detail (column) in the data (except the id)
+                for col, detail in enumerate(ticket_info[1:], start=0):  # start at col 0
+                    # create a label for the ticket detail and add to the grid
+                    detail_label = ctk.CTkLabel(self, text=detail, font=("Roboto", 20))
+                    detail_label.grid(row=row, column=col, pady=20, padx=20)
 
-            # create a button for buying the ticket at the end of the row (ticket)
-            buy_button = ctk.CTkButton(self, text="Buy Ticket",
-                                       command=lambda ticket=ticket_info: self._buy_ticket_command(ticket))
-            buy_button.grid(row=row, column=4, padx=10)
+                # create a button for buying the ticket at the end of the row (ticket)
+                buy_button = ctk.CTkButton(self, text="Buy Ticket",
+                                           command=lambda ticket=ticket_info: self._buy_ticket_command(ticket))
+                buy_button.grid(row=row, column=4, padx=10)
+        except Exception as e:
+            CTkMessagebox(title="Error", message="Error while displaying tickets.", icon="cancel")
+            print(f"Error while displaying tickets: {e}")
 
     def _home_command(self):
         self.after(0, self.switch_frame, "Home")

@@ -12,6 +12,7 @@ load_dotenv()
 # get the host and port from the .env file
 HOST = os.getenv("DB_HOST")
 PORT = int(os.getenv("DB_PORT"))
+
 # path to the database - using the os module to get the path to the project directory, so it works on any machine
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db', 'project.db')
 
@@ -20,6 +21,7 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # bind the socket to the host and port
 server.bind((HOST, PORT))
+
 # listen for connections
 server.listen()
 print("Server is ready to receive")
@@ -28,44 +30,50 @@ print("Server is ready to receive")
 def establish_connection(client):
     """Establish a connection with the client"""
     try:
-        # receive the data (username and password) from the client
-        message = client.recv(1024).decode()
+        # keep the socket connection open until the client sends "logout"
+        while True:
+            # receive the data (username and password) from the client
+            message = client.recv(1024).decode()
+            print("Received message:", message)
 
-        # split the data into command and message (separated by a newline)
-        command, data = message.split("\n", 1)
+            # split the data into command and message (separated by a newline)
+            command, data = message.split("\n", 1)
 
-        # based on the command sent from client, call the appropriate function
-        match command:
-            case "login":
-                handle_login(client, data)
-            case "register":
-                handle_register(client, data)
-            case "get_user_tickets":
-                handle_get_user_tickets(client, data)
-            case "get_tickets":
-                handle_get_tickets(client)
-            case "buy_ticket":
-                handle_buy_ticket(client, data)
-            case "sell_ticket":
-                handle_sell_ticket(client, data)
-            case "admin_check":
-                handle_admin_check(client, data)
-            case "get_currency":
-                handle_get_currency(client, data)
-            case "logout":
-                handle_logout(client)
-                return  # return to close the thread
-            case _:
-                print("Invalid command")
-                handle_logout(client)
+            # based on the command sent from client, call the appropriate function
+            match command:
+                case "login":
+                    handle_login(data)
+                case "register":
+                    handle_register(data)
+                case "get_user_tickets":
+                    handle_get_user_tickets(data)
+                case "get_tickets":
+                    handle_get_tickets()
+                case "buy_ticket":
+                    handle_buy_ticket(data)
+                case "sell_ticket":
+                    handle_sell_ticket(data)
+                case "admin_check":
+                    handle_admin_check(data)
+                case "get_currency":
+                    handle_get_currency(data)
+                case "logout":
+                    handle_logout()
+                    break
+                case _:
+                    print("Invalid command")
+                    handle_logout()
+                    break
 
     # if there is a connection error, print it
     except socket.error as err:
         print(f"Connection error: {err}")
+    finally:
+        client.close()  # Ensure the connection is closed when done
 
 
 # handle login
-def handle_login(client, data):
+def handle_login(data):
     # split the data into username and password (separated by a newline)
     username, password = data.split("\n", 1)
 
@@ -87,10 +95,12 @@ def handle_login(client, data):
     else:
         print("Login failed on server - sending failure message to client")
         client.send("Login failed".encode())
+        # close the connection with the client
+        client.close()
 
 
 # handle register
-def handle_register(client, data):
+def handle_register(data):
     # split the message into first name, last name, email, username, password (separated by a newline)
     first_name, last_name, email, username, password = data.split("\n", 4)
 
@@ -106,7 +116,7 @@ def handle_register(client, data):
     # if the username already exists, send a failure message to the client
     if user:
         print("Register failed on server - USERNAME ALREADY EXISTS - sending failure message to client")
-        client.send("Register failed".encode())
+        client.send("Username Exists".encode())
     else:
         # insert the user into the database
         c.execute("INSERT INTO users (first_name, last_name, email, username, password) VALUES (?, ?, ?, ?, ?)",
@@ -117,7 +127,7 @@ def handle_register(client, data):
 
 
 # get the tickets for the current user
-def handle_get_user_tickets(client, username):
+def handle_get_user_tickets(username):
     with sqlite3.connect(DB_PATH) as conn:
         c = conn.cursor()
 
@@ -141,7 +151,8 @@ def handle_get_user_tickets(client, username):
 
 
 # get all available concert tickets
-def handle_get_tickets(client):
+def handle_get_tickets():
+    print("Getting tickets")
     with sqlite3.connect(DB_PATH) as conn:
         c = conn.cursor()
 
@@ -156,7 +167,7 @@ def handle_get_tickets(client):
 
 
 # buy a ticket
-def handle_buy_ticket(client, data):
+def handle_buy_ticket(data):
     with sqlite3.connect(DB_PATH) as conn:
         c = conn.cursor()
 
@@ -197,15 +208,13 @@ def handle_buy_ticket(client, data):
             c.execute("UPDATE concerts SET amount = amount - 1 WHERE event_id = ?", (event_id,))
 
             conn.commit()
-            print("Ticket purchased")
             client.send("Ticket purchased".encode())
         else:
             client.send("Insufficient funds".encode())
 
 
 # sell a ticket
-def handle_sell_ticket(client, data):
-    print("Received data:", data)
+def handle_sell_ticket(data):
     # connect to sqlite database
     conn = sqlite3.connect(DB_PATH)
     # create a cursor
@@ -217,7 +226,6 @@ def handle_sell_ticket(client, data):
     # get the event_id of the ticket
     c.execute("SELECT event_id FROM concerts WHERE event_name = ?", (event_name,))
     event_id = c.fetchone()[0]
-    print("Event ID:", event_id)
 
     # get the price of the ticket
     c.execute("SELECT price FROM concerts WHERE event_id = ?", (event_id,))
@@ -248,28 +256,27 @@ def handle_sell_ticket(client, data):
     # add one to the amount of tickets available
     c.execute("UPDATE concerts SET amount = amount + 1 WHERE event_id = ?", (event_id,))
     conn.commit()
-    print("Ticket sold")
+
     client.send("Ticket sold".encode())
 
 
 # handle admin check - check if the user is an admin
-def handle_admin_check(client, data):
+def handle_admin_check(data):
     with sqlite3.connect(DB_PATH) as conn:
         c = conn.cursor()
         # execute the query, data is a tuple with one element, so we need to add a comma after the element
         # sqlite expects a tuple (or list), even if there is only one element
         c.execute("SELECT admin FROM users WHERE username = ?", (data,))
         admin_status = c.fetchone()
-        print("ADMIN STATUS_:", admin_status)
+
         if admin_status[0] == 1:
             response = "ADMIN"
-            print("ADMIN STATUS RESPONSE:", response)
             client.send(response.encode())
         else:
             client.send("USER".encode())
 
 
-def handle_get_currency(client, username):
+def handle_get_currency(username):
     """Get the user's currency"""
     # connect to sqlite database
     with sqlite3.connect(DB_PATH) as conn:
@@ -279,22 +286,26 @@ def handle_get_currency(client, username):
         client.send(str(funds).encode())
 
 
-def handle_logout(client):
+def handle_logout():
     """Close the connection with the client"""
+    print("Closing connection with client")
+    client.shutdown(socket.SHUT_RDWR)
     client.close()
 
 
-# Continuously listen for connections from clients
+# Continuously listen for connections from clients - keep the server running
 while True:
-    # accept the connection from the client
-    client, IPaddress = server.accept()
-    print(f"Accepted connection from {IPaddress}")
+    try:
+        # accept the connection from the client
+        client, IPaddress = server.accept()
+        print(f"Accepted connection from {IPaddress}")
 
-    # create a thread for each client
-    thread = threading.Thread(target=establish_connection, args=(client,))
-    # make the thread a daemon thread, so it closes when the main thread(program) closes
-    thread.daemon = True
-    # start the thread
-    thread.start()
-    print(f"Thread started for client {IPaddress}")
-
+        # create a thread for each client
+        thread = threading.Thread(target=establish_connection, args=(client,))
+        # make the thread a daemon thread, so it closes when the main thread(program) closes
+        thread.daemon = True
+        # start the thread
+        thread.start()
+        print(f"Thread started for client {IPaddress}")
+    except socket.error as e:
+        print(f"Error accepting connection: {e}")

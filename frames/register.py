@@ -3,6 +3,7 @@ from CTkMessagebox import CTkMessagebox
 import threading
 from network import client
 
+
 class Register(ctk.CTkFrame):
     """register frame"""
 
@@ -112,11 +113,17 @@ class Register(ctk.CTkFrame):
 
         # if register successful, switch to the login frame (testing)
         if response == "Register successful":
-            # after 0ms, switch to the login frame, 'after' is a tkinter method to schedule a function to run on the main GUI thread
-            self.after(0, self.switch_frame, "Login")
+            msg = CTkMessagebox(title="Success", message="Registration successful.", icon="check", option_1="OK")
+            if msg.get() == "OK":
+                self._on_messagebox_close()
+        elif "Username Exists" in response:
+            CTkMessagebox(title="Error", message="Username already exists.", icon="warning")
         else:
-            CTkMessagebox(title="Error", message="Registration failed. Try again.", icon="error")
+            CTkMessagebox(title="Error", message="Registration failed. Try again.", icon="cancel")
 
+    def _on_messagebox_close(self):
+        # after 0ms, switch to the login frame, 'after' is a tkinter method to schedule a function to run on the main GUI thread
+        self.after(0, self.switch_frame, "Login")
 
     def _register_command(self):
         threading.Thread(target=self.register_operation()).start()

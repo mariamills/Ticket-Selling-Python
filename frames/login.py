@@ -35,27 +35,31 @@ class Login(ctk.CTkFrame):
         button = ctk.CTkButton(self, text="Register", command=self._register_command)
         button.pack(pady=10, padx=20)
 
+    def post_login_operations(self, username):
+        self.app_state.username = username
+        self.app_state.currency = client.get_currency(username)
+        if client.admin_check(username) == "ADMIN":
+            self.app_state.is_admin = True
+        self.after(0, self.switch_frame, "Home")
+
     # login operation (threaded)
     def login_operation(self):
         # get the username and password from the entries
         username = self.entry1.get()
         password = self.entry2.get()
 
+        if not username or not password:
+            CTkMessagebox(title="Alert", message="Please enter a username and password.", icon="warning")
+            return
+
         # send the username and password to the server
         response = client.login(username, password)
 
         # if login successful, switch to the home frame
         if response == "Login successful":
-            self.app_state.username = username
-            self.app_state.currency = client.get_currency(username)
-            # check if the user is an admin
-            if client.admin_check(username) == "ADMIN":
-                self.app_state.is_admin = True
-            # after 0ms, switch to the home frame, 'after' is a tkinter method to schedule a function to run on the main GUI thread
-            # this is needed because customtkinter is not thread safe and the GUI can only be updated on the main thread
-            # since login is a threaded operation, it is not run on the main thread
-            # so without this, the GUI would freeze when switching frames
-            self.after(0, self.switch_frame, "Home")
+            threading.Thread(target=self.post_login_operations, args=(username,)).start()
+        elif "Receive failed" in response:
+            CTkMessagebox(title="Error", message="Server is offline.", icon="error")
         else:
             CTkMessagebox(title="Alert", message="Incorrect Credentials. Login Failed.", icon="warning")
 

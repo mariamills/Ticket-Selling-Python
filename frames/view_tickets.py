@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from CTkMessagebox import CTkMessagebox
 from network import client
 import threading
 
@@ -37,15 +38,23 @@ class ViewTickets(ctk.CTkFrame):
         # Check if the server returned an error message
         if isinstance(data, str) and "error" in data.lower():
             print("Error fetching user tickets:", data)
+            CTkMessagebox(title="Error", message="Error fetching user tickets.", icon="cancel")
             return []
 
-        # Check if data is already in the correct format (list of lists)
-        if isinstance(data, list) and all(isinstance(entry, list) for entry in data):
-            return data
-
-        # If data is not in the expected format return an empty list
-        print("Unexpected data format:", data)
-        return []
+            # Attempt to parse the string data into a list of lists
+        try:
+            # Assuming the data format is a comma-separated string of ticket details
+            # and each ticket is separated by a newline
+            ticket_data = [ticket.strip().split(', ') for ticket in data.split('\n') if ticket.strip()]
+            # Convert each detail into the appropriate type, if necessary
+            # For example, if the price should be a float and the quantity an integer
+            processed_data = [[detail if index != 1 else float(detail) for index, detail in enumerate(ticket)] for
+                              ticket in ticket_data]
+            return processed_data
+        except Exception as e:
+            print(f"Failed to process user ticket data: {e}")
+            CTkMessagebox(title="Error", message="Failed to process user ticket data.", icon="cancel")
+            return []
 
     # Display user tickets
     def _display_tickets(self, ticket_data):
@@ -83,12 +92,8 @@ class ViewTickets(ctk.CTkFrame):
 
     def _home_command(self):
         self.after(0, self.switch_frame, "Home")
-        print("Switching to home frame")
 
     def _sell_ticket_command(self, ticket):
-        print("Selling ticket[0]", ticket[0])
-        print("Selling ticket:", ticket)
-
         # Run the selling ticket operation in a separate thread
         thread = threading.Thread(target=self._perform_sell_ticket, args=(ticket,))
         thread.start()

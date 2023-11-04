@@ -26,6 +26,15 @@
 - ~~Add user's current currency to sell ticket frame~~
 - ~~When selling a ticket, fix the price not being updated correctly~~
 
+### Bugs
+- Logout was changed to Exit because it was causing a 'bug' where when you logout, 
+it closes the client socket connection (which is wanted) BUT,
+the server will not expect/accept anymore client socket connections from the same client  (which is NOT wanted).
+  - So, as a temporary fix, I changed logout to exit, which will close the client socket connection, 
+  - but will also close the client program. This is not ideal, but it works for now. 
+
+We will need to eventually come up with a better solution.
+
 ### Vulnerabilities
 - plaintext password (not hashed or salted)
 - unsecure TCP connection (no encryption)

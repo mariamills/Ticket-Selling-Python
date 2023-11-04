@@ -2,6 +2,7 @@
 import socket
 import os
 from dotenv import load_dotenv
+from threading import Lock
 
 # load the .env file
 load_dotenv()
@@ -10,221 +11,103 @@ load_dotenv()
 HOST = os.getenv("DB_HOST")
 PORT = int(os.getenv("DB_PORT"))
 
-# commands
-LOGIN_COMMAND = "login"
-REGISTER_COMMAND = "register"
-ADMIN_CHECK_COMMAND = "admin_check"
-GET_TICKETS_COMMAND = "get_tickets"
-GET_USER_TICKETS_COMMAND = "get_user_tickets"
-BUY_TICKET_COMMAND = "buy_ticket"
-SELL_TICKET_COMMAND = "sell_ticket"
-GET_CURRENCY_COMMAND = "get_currency"
-LOGOUT_COMMAND = "logout"
+# commands to send to the server
+COMMANDS = {
+    "login": "login",
+    "register": "register",
+    "admin_check": "admin_check",
+    "get_tickets": "get_tickets",
+    "get_user_tickets": "get_user_tickets",
+    "buy_ticket": "buy_ticket",
+    "sell_ticket": "sell_ticket",
+    "get_currency": "get_currency",
+    "logout": "logout"
+}
+
+# create a PERSISTENT client socket
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((HOST, PORT))
+
+# set a timeout for the socket
+client_socket.settimeout(10.0)  # Set a 10-second timeout for example
+
+# lock for sending commands to the server (to prevent overlapping messages)
+send_lock = Lock()
 
 
-def send_command(client, command, message=""):
-    message = f"{command}\n{message}"
-    client.send(message.encode())
+def send_command(command, message=""):
+    """Sends a command to the server"""
+    with send_lock:
+        try:
+            print("Sending command:", command)
+            full_message = f"{command}\n{message}"
+            client_socket.send(full_message.encode())
+            print("Message sent")
+        except socket.error as e:
+            print(f"Send failed: {e}")
+            return "Send failed"
 
-
-# login function - returns a response from the server
-def login(username, password):
-    # create a client socket
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def receive_response():
+    """Receives a response from the server"""
     try:
-        # connect to the server
-        client.connect((HOST, PORT))
-
-        # create the message to send to the server
-        message = f"{username}\n{password}"
-
-        # send the login command
-        send_command(client, LOGIN_COMMAND, message)
-
-        # receive the response from the server
-        response = client.recv(1024).decode()
-
-        # print out the response (testing)
-        print("From client.py - Login:", response)
+        response = client_socket.recv(1024).decode()
+        print("Response received:", response)
         return response
+    except socket.error as e:
+        return "Receive failed"
 
-    except socket.error as err:
-        print(f"Connection error: {err}")
-        return f"Connection error: {err}"
 
-    finally:
-        client.close()
+
+def login(username, password):
+    send_command("login", f"{username}\n{password}")
+    response = receive_response()
+    print("From client.py - Login:", response)
+    return response
 
 
 def register(first_name, last_name, email, username, password):
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        client.connect((HOST, PORT))
-
-        message = f"{first_name}\n{last_name}\n{email}\n{username}\n{password}"
-
-        send_command(client, REGISTER_COMMAND, message)
-
-        response = client.recv(1024).decode()
-        print("From client.py - Register:", response)
-        return response
-
-    except socket.error as err:
-        print(f"Connection error: {err}")
-        return f"Connection error: {err}"
-    finally:
-        client.close()
-
-
-# check if the user is an admin
-def admin_check(username):
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        client.connect((HOST, PORT))
-
-        message = f"{username}"
-
-        send_command(client, ADMIN_CHECK_COMMAND, message)
-
-        response = client.recv(1024).decode()
-        if response.startswith("admin:"):
-            admin_status = response.split(":")[1]
-            print("Admin status:", admin_status)
-        else:
-            print(response)
-
-        return response
-
-    except socket.error as err:
-        print(f"Connection error: {err}")
-        return f"Connection error: {err}"
-    finally:
-        client.close()
-
-
-# update for viewing tickets
-def get_tickets():
-    # create a client socket
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        # connect to the server
-        client.connect((HOST, PORT))
-
-        # send the login command
-        send_command(client, GET_TICKETS_COMMAND)
-
-        # receive the response from the server
-        response = client.recv(1024).decode()
-
-        # print out the response (testing)
-        print("From client.py - View Tickets:", response)
-        return response
-
-    except socket.error as err:
-        print(f"Connection error: {err}")
-        return f"Connection error: {err}"
-
-    finally:
-        client.close()
-
-
-# get tickets for a specific user
-def get_user_tickets(username):
-    # create a client socket
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        # connect to the server
-        client.connect((HOST, PORT))
-
-        # send the login command
-        send_command(client, GET_USER_TICKETS_COMMAND, username)
-
-        # receive the response from the server
-        response = client.recv(1024).decode()
-
-        # print out the response (testing)
-        print("From client.py - View Tickets:", response)
-
-        # Split the response into a list of tickets, and then split each ticket's details
-        ticket_list = [ticket.split(', ') for ticket in response.split('\n') if ticket]
-        return ticket_list
-
-    except socket.error as err:
-        print(f"Connection error: {err}")
-        return f"Connection error: {err}"
-
-    finally:
-        client.close()
-
-
-def buy_ticket(event_id, username):
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        client.connect((HOST, PORT))
-
-        message = f"{event_id}\n{username}"
-
-        send_command(client, BUY_TICKET_COMMAND, message)
-
-        response = client.recv(1024).decode()
-        # TODO: Remove this print statement when done testing
-        print("From client.py - Buy Ticket:", response)
-
-        return response
-
-    except socket.error as err:
-        print(f"Connection error: {err}")
-        return f"Connection error: {err}"
-    finally:
-        client.close()
-
-
-# sell ticket
-def sell_ticket(event_name, username):
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        client.connect((HOST, PORT))
-
-        message = f"{event_name}\n{username}"
-
-        send_command(client, SELL_TICKET_COMMAND, message)
-
-        response = client.recv(1024).decode()
-        print("From client.py - Sell Ticket:", response)
-        return response
-
-    except socket.error as err:
-        print(f"Connection error: {err}")
-        return f"Connection error: {err}"
-    finally:
-        client.close()
+    print("From client.py - Register:", first_name, last_name, email, username, password)
+    send_command("register", f"{first_name}\n{last_name}\n{email}\n{username}\n{password}")
+    response = receive_response()
+    print("From client.py - Register:", response)
+    return response
 
 
 def get_currency(username):
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        client.connect((HOST, PORT))
-        send_command(client, GET_CURRENCY_COMMAND, username)
-        response = client.recv(1024).decode()
-        print("From client.py - Get Currency:", response)
-        return response
-    except socket.error as err:
-        print(f"Connection error: {err}")
-        return f"Connection error: {err}"
-    finally:
-        client.close()
+    send_command("get_currency", username)
+    response = receive_response()
+    return response
 
 
-# logout - closes the client socket connection to the server
+def get_tickets():
+    send_command("get_tickets")
+    return receive_response()
+
+
+def get_user_tickets(username):
+    send_command("get_user_tickets", username)
+    return receive_response()
+
+
+def admin_check(username):
+    send_command("admin_check", username)
+    return receive_response()
+
+
+def buy_ticket(ticket_id, username):
+    send_command("buy_ticket", f"{ticket_id}\n{username}")
+    return receive_response()
+
+
+def sell_ticket(ticket_id, username):
+    send_command("sell_ticket", f"{ticket_id}\n{username}")
+    return receive_response()
+
+
 def logout():
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        client.connect((HOST, PORT))
-        send_command(client, LOGOUT_COMMAND, "")
-        print("Sent logout command to server")
-    except socket.error as err:
-        print(f"Connection error: {err}")
-    finally:
-        client.close()
-
+    send_command("logout")
+    client_socket.shutdown(socket.SHUT_RDWR)
+    client_socket.close()
+    # close application
+    exit()
 
