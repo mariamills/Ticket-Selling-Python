@@ -5,6 +5,7 @@ from frames.register import Register
 from frames.buy_tickets import BuyTickets
 from frames.view_tickets import ViewTickets
 from frames.admin import Admin
+from frames.add_tickets import AddTicket
 
 # Size of the root window
 WINDOW_SIZE = "900x600"
@@ -23,7 +24,8 @@ class AppState:
             'Register': Register,
             'Buy_Tickets': BuyTickets,
             'View_Tickets': ViewTickets,
-            'Admin': Admin
+            'Admin': Admin,
+            'AddTicket': AddTicket,
         }
 
 

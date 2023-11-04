@@ -14,12 +14,12 @@
 
 
 - Admin functionality
-  - Allow admins to create new tickets
+  - ~~Allow admins to create new tickets~~ - Maybe limit the number of tickets an admin can create? or change display limit to 10?
   - Allow admins to update existing tickets
   - Allow admins to delete existing tickets
 
 
-- Error handling
+- Error handling - For the most part, I think errors are handled well, need to go over code and test to be sure. __Needs double-checking__.
 - Add tests
 - ~~Update frame after every ticket purchase (to show the updated ticket count)~~
 - ~~Add user's current currency to buy ticket frame~~

@@ -57,6 +57,8 @@ def establish_connection(client):
                     handle_admin_check(data)
                 case "get_currency":
                     handle_get_currency(data)
+                case "add_ticket":
+                    handle_add_ticket(data)
                 case "logout":
                     handle_logout()
                     break
@@ -142,7 +144,8 @@ def handle_get_user_tickets(username):
 
         if tickets:
             # Convert list of tuples to a formatted string
-            tickets_str = "\n".join(f"{event_name}, {total_cost}, {amount}" for event_name, total_cost, amount in tickets)
+            tickets_str = "\n".join(
+                f"{event_name}, {total_cost}, {amount}" for event_name, total_cost, amount in tickets)
             client.send(tickets_str.encode())
             # TODO: Remove this print statement - keeping for testing purposes now (still in use)
             print("Sent user tickets to client:", tickets_str)
@@ -291,6 +294,30 @@ def handle_logout():
     print("Closing connection with client")
     client.shutdown(socket.SHUT_RDWR)
     client.close()
+
+
+# Admin Functions
+def handle_add_ticket(data):
+    """Add a ticket to the database"""
+    with sqlite3.connect(DB_PATH) as conn:
+        c = conn.cursor()
+
+        # split the data into ticket_name, ticket_price, ticket_amount, ticket_date (separated by a newline)
+        ticket_name, ticket_price, ticket_amount, ticket_date = data.split("\n", 3)
+
+        # check if the ticket already exists
+        c.execute("SELECT * FROM concerts WHERE event_name = ?", (ticket_name,))
+        ticket = c.fetchone()
+
+        # if the ticket already exists, send a failure message to the client
+        if ticket:
+            client.send("Ticket Duplicate".encode())
+        else:
+            # insert the ticket into the database
+            c.execute("INSERT INTO concerts (event_name, price, amount, date) VALUES (?, ?, ?, ?)",
+                      (ticket_name, ticket_price, ticket_amount, ticket_date))
+            conn.commit()
+            client.send("Ticket Added".encode())
 
 
 # Continuously listen for connections from clients - keep the server running

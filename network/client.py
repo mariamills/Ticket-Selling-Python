@@ -111,3 +111,8 @@ def logout():
     # close application
     exit()
 
+# Admin Functions
+def add_ticket(ticket_name, ticket_price, ticket_amount, ticket_date):
+    send_command("add_ticket", f"{ticket_name}\n{ticket_price}\n{ticket_amount}\n{ticket_date}")
+    return receive_response()
+

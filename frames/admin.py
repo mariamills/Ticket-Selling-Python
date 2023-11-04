@@ -6,7 +6,6 @@ class Admin(ctk.CTkFrame):
         super().__init__(master)
         self.app_state = app_state
         self.switch_frame = switch_frame
-
         self._create_widgets()
 
     def _create_widgets(self):
@@ -40,7 +39,6 @@ class Admin(ctk.CTkFrame):
     def _add_ticket_command(self):
         # after 0ms, switch to the add ticket frame, 'after' is a tkinter method to schedule a function to run on the main GUI thread
         self.after(0, self.switch_frame, "AddTicket")
-        print("Switching to add ticket frame")
 
     # delete ticket command
     def _delete_ticket_command(self):
