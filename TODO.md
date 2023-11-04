@@ -5,8 +5,8 @@
 - ~~Encourage users to use strong passwords - password minimum length, maybe also password complexity, etc.~~ - added min & max len, may add complexity later, such as number of special characters, etc.
 
 
-- Add a way to change password? (maybe) - if we do, we will need to add a way to verify the user's identity? - e.g.: send an email to the user's email address
-- Add a way to change email? (maybe) - if we do, we will need to add a way to verify the user's identity? - e.g.: send an email to the user's email address
+- Add a way to change password? (maybe) - if we do, we will need to add a way to verify the user's identity? - e.g.: send an email to the user's email address - probably not going to do this due to time constraints
+- Add a way to change email? (maybe) - if we do, we will need to add a way to verify the user's identity? - e.g.: send an email to the user's email address - probably not going to do this due to time constraints
 - ~~Ticket Dashboard - all tickets for sale~~ (implement pagination?) - decided not to add pagination, instead LIMIT of 15.
 - ~~Ticket Dashboard - user's current tickets (implement pagination?)~~ - decided not to add pagination for now
   - ~~Allow users to view their tickets~~
@@ -20,7 +20,7 @@
 
 
 - Error handling - For the most part, I think errors are handled well, need to go over code and test to be sure. __Needs double-checking__.
-- Add tests
+- Add tests - May not have time to do this before due date, but that is ok, this is not a requirement for the project.
 - ~~Update frame after every ticket purchase (to show the updated ticket count)~~
 - ~~Add user's current currency to buy ticket frame~~
 - ~~Add user's current currency to sell ticket frame~~
