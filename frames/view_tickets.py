@@ -35,19 +35,15 @@ class ViewTickets(ctk.CTkFrame):
         username = self.app_state.username
         data = client.get_user_tickets(username)
 
-        # Check if the server returned an error message
+        # Check if the data is an error message
         if isinstance(data, str) and "error" in data.lower():
-            print("Error fetching user tickets:", data)
             CTkMessagebox(title="Error", message="Error fetching user tickets.", icon="cancel")
             return []
-
-            # Attempt to parse the string data into a list of lists
         try:
-            # Assuming the data format is a comma-separated string of ticket details
-            # and each ticket is separated by a newline
+            # Split the data into individual tickets
             ticket_data = [ticket.strip().split(', ') for ticket in data.split('\n') if ticket.strip()]
             # Convert each detail into the appropriate type, if necessary
-            # For example, if the price should be a float and the quantity an integer
+            # (e.g. convert the price from a string to a float)
             processed_data = [[detail if index != 1 else float(detail) for index, detail in enumerate(ticket)] for
                               ticket in ticket_data]
             return processed_data
@@ -77,15 +73,20 @@ class ViewTickets(ctk.CTkFrame):
         displayed_tickets = {}
         for ticket_info in ticket_data:
             ticket_id = ticket_info[0]
+            # check if the ticket is already displayed
             if ticket_id in displayed_tickets:
+                # add the amount owned to the existing ticket
                 displayed_tickets[ticket_id][-1] = str(int(displayed_tickets[ticket_id][-1]) + int(ticket_info[-1]))
             else:
+                # else... add the ticket to the displayed tickets
                 displayed_tickets[ticket_id] = ticket_info
 
         for row, (ticket_id, ticket_info) in enumerate(displayed_tickets.items(), start=3):  # Start at row 3 to avoid overlapping with labels
             for col, detail in enumerate(ticket_info, start=0):
+                # create a label for each ticket detail
                 detail_label = ctk.CTkLabel(self, text=detail, font=("Roboto", 20))
                 detail_label.grid(row=row, column=col, pady=20, padx=20)
+            # create a sell button for each ticket (row)
             sell_button = ctk.CTkButton(self, text="Sell Ticket",
                                         command=lambda ticket=ticket_info: self._sell_ticket_command(ticket))
             sell_button.grid(row=row, column=len(ticket_info))
