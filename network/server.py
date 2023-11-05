@@ -97,8 +97,7 @@ def handle_login(data):
     else:
         print("Login failed on server - sending failure message to client")
         client.send("Login failed".encode())
-        # close the connection with the client
-        client.close()
+        #client.close()  # This causes the server to not expect any more messages from the client, same issue as logout
 
 
 # handle register

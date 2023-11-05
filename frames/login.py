@@ -59,7 +59,7 @@ class Login(ctk.CTkFrame):
         if response == "Login successful":
             threading.Thread(target=self.post_login_operations, args=(username,)).start()
         elif "Receive failed" in response:
-            CTkMessagebox(title="Error", message="Server is offline.", icon="error")
+            CTkMessagebox(title="Error", message="Server is offline.", icon="cancel")
         else:
             CTkMessagebox(title="Alert", message="Incorrect Credentials. Login Failed.", icon="warning")
 
