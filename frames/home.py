@@ -32,8 +32,7 @@ class Home(ctk.CTkFrame):
         self._update_ui_for_admin()
 
         # Logout button
-        # TODO: change this to be a log out instead of exit... refer to TODO.md for more info
-        button = ctk.CTkButton(self, text="Exit", command=self._logout_command)
+        button = ctk.CTkButton(self, text="Logout", command=self._logout_command)
         button.pack(pady=20, padx=20)
 
     # Admin Home (Dashboard) label - only show if the user is an admin

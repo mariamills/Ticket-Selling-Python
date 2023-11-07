@@ -59,6 +59,15 @@ def receive_response():
 
 
 def login(username, password):
+    # make the client_socket global
+    global client_socket
+
+    # check if the socket is closed (if so, create a new one)
+    if client_socket.fileno() == -1:
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((HOST, PORT))
+        client_socket.settimeout(10.0)
+
     send_command("login", f"{username}\n{password}")
     response = receive_response()
     print("From client.py - Login:", response)
@@ -106,10 +115,17 @@ def sell_ticket(ticket_id, username):
 
 def logout():
     send_command("logout")
-    client_socket.shutdown(socket.SHUT_RDWR)
-    client_socket.close()
-    # close application
-    exit()
+
+    try:
+        client_socket.shutdown(socket.SHUT_RDWR)
+        client_socket.close()
+        # close application
+        #exit()
+    except socket.error as e:
+        print(f"Error closing socket: {e}")
+        # close application
+        exit()
+    print("Socket closed")
 
 # Admin Functions
 def add_ticket(ticket_name, ticket_price, ticket_amount, ticket_date):

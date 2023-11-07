@@ -8,7 +8,7 @@ from frames.admin import Admin
 from frames.add_tickets import AddTicket
 
 # Size of the root window
-WINDOW_SIZE = "900x600"
+WINDOW_SIZE = "900x700"
 
 
 class AppState:
