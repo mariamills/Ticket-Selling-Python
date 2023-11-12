@@ -91,13 +91,10 @@ def handle_login(data):
 
     # if the username and password are correct, send a success message to the client
     if user:
-        # TODO: Remove these print statements - keeping for testing purposes now (still in use)
-        print("Login successful on server - sending success message to client")
         client.send("Login successful".encode())
     else:
         print("Login failed on server - sending failure message to client")
         client.send("Login failed".encode())
-        #client.close()  # This causes the server to not expect any more messages from the client, same issue as logout
 
 
 # handle register
@@ -146,15 +143,12 @@ def handle_get_user_tickets(username):
             tickets_str = "\n".join(
                 f"{event_name}, {total_cost}, {amount}" for event_name, total_cost, amount in tickets)
             client.send(tickets_str.encode())
-            # TODO: Remove this print statement - keeping for testing purposes now (still in use)
-            print("Sent user tickets to client:", tickets_str)
         else:
             client.send("No tickets".encode())
 
 
 # get all available concert tickets
 def handle_get_tickets():
-    print("Getting tickets")
     with sqlite3.connect(DB_PATH) as conn:
         c = conn.cursor()
 

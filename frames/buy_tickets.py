@@ -88,6 +88,4 @@ class BuyTickets(ctk.CTkFrame):
             CTkMessagebox(title="Error", message="Insufficient funds.", icon="cancel")
         else:
             self.app_state.currency = client.get_currency(self.app_state.username)
-            # TODO: Is there a better way to update the currency label? (i.e. refresh the frame)
             self.after(0, self.switch_frame, "Buy_Tickets")
-            print("Buying ticket:", ticket)

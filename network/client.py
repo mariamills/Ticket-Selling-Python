@@ -39,10 +39,8 @@ def send_command(command, message=""):
     """Sends a command to the server"""
     with send_lock:
         try:
-            print("Sending command:", command)
             full_message = f"{command}\n{message}"
             client_socket.send(full_message.encode())
-            print("Message sent")
         except socket.error as e:
             print(f"Send failed: {e}")
             return "Send failed"
@@ -51,10 +49,9 @@ def receive_response():
     """Receives a response from the server"""
     try:
         response = client_socket.recv(1024).decode()
-        print("Response received:", response)
         return response
     except socket.error as e:
-        return "Receive failed"
+        return f"Receive failed: {e}"
 
 
 
@@ -70,15 +67,12 @@ def login(username, password):
 
     send_command("login", f"{username}\n{password}")
     response = receive_response()
-    print("From client.py - Login:", response)
     return response
 
 
 def register(first_name, last_name, email, username, password):
-    print("From client.py - Register:", first_name, last_name, email, username, password)
     send_command("register", f"{first_name}\n{last_name}\n{email}\n{username}\n{password}")
     response = receive_response()
-    print("From client.py - Register:", response)
     return response
 
 
