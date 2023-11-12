@@ -81,6 +81,8 @@ class AddTicket(ctk.CTkFrame):
     def _validate_ticket_name(self, name):
         if not name:
             raise ValidationError("Please enter the ticket name.")
+        if len(name) > 25:
+            raise ValidationError("Ticket Name must be less than or equal to 25 characters.")
         return name
 
     def _validate_ticket_price(self, price):
@@ -88,8 +90,10 @@ class AddTicket(ctk.CTkFrame):
             raise ValidationError("Ticket Price must not be empty.")
         try:
             price = float(price)
-            if price <= 0:
-                raise ValidationError("Ticket Price must be positive.")
+            if price <= 99:
+                raise ValidationError("Ticket Price must be greater than 99.")
+            if price > 1000:
+                raise ValidationError("Ticket Price must be less than or equal to 1000.")
         except ValueError:
             raise ValidationError("Ticket Price must be a number.")
         return price
@@ -99,8 +103,10 @@ class AddTicket(ctk.CTkFrame):
             raise ValidationError("Ticket Amount must not be empty.")
         try:
             amount = int(amount)
-            if amount <= 0:
-                raise ValidationError("Ticket Amount must be positive.")
+            if amount <= 15:
+                raise ValidationError("Ticket Amount must be greater than 15.")
+            if amount > 500:
+                raise ValidationError("Ticket Amount must be less than or equal to 500.")
         except ValueError:
             raise ValidationError("Ticket Amount must be a number.")
         return amount
@@ -127,6 +133,8 @@ class AddTicket(ctk.CTkFrame):
                 CTkMessagebox(title="Success", message="Ticket added successfully.", icon="info")
             elif response == "Ticket Duplicate":
                 self._show_error_message("Ticket already exists.")
+            elif response == "Ticket limit reached":
+                self._show_error_message("Ticket limit reached. Delete a ticket then try again.")
             else:
                 self._show_error_message("An error occurred while adding the ticket.")
         except Exception as e:

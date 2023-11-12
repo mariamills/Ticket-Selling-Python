@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS users(
           email TEXT NOT NULL,
           username TEXT NOT NULL UNIQUE,
           password TEXT NOT NULL,
-          funds REAL NOT NULL DEFAULT 450.00,
+          funds REAL NOT NULL DEFAULT 500.00,
           admin INTEGER NOT NULL DEFAULT 0
 )
 """)

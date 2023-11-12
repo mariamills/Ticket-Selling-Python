@@ -204,8 +204,15 @@ def handle_buy_ticket(data):
 
             # update the user's funds
             c.execute("UPDATE users SET funds = ? WHERE username = ?", (funds, username))
-            # subtract one from the amount of tickets available
+
+            # subtract one from the amount of tickets available and check the updated amount
             c.execute("UPDATE concerts SET amount = amount - 1 WHERE event_id = ?", (event_id,))
+            c.execute("SELECT amount FROM concerts WHERE event_id = ?", (event_id,))
+            updated_amount = c.fetchone()[0]
+
+            # delete the ticket if the amount is 0 or less
+            if updated_amount <= 0:
+                c.execute("DELETE FROM concerts WHERE event_id = ?", (event_id,))
 
             conn.commit()
             client.send("Ticket purchased".encode())
@@ -296,8 +303,19 @@ def handle_logout():
 # Admin Functions
 def handle_add_ticket(data):
     """Add a ticket to the database"""
+    MAX_TICKETS = 9  # Ticket limit - since there currently isn't any pagination
+
     with sqlite3.connect(DB_PATH) as conn:
         c = conn.cursor()
+
+        # Count the current number of tickets
+        c.execute("SELECT COUNT(*) FROM concerts")
+        current_ticket_count = c.fetchone()[0]
+
+        # Check if the limit has been reached
+        if current_ticket_count >= MAX_TICKETS:
+            client.send("Ticket limit reached".encode())
+            return
 
         # split the data into ticket_name, ticket_price, ticket_amount, ticket_date (separated by a newline)
         ticket_name, ticket_price, ticket_amount, ticket_date = data.split("\n", 3)

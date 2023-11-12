@@ -43,14 +43,14 @@ class Admin(ctk.CTkFrame):
     # delete ticket command
     def _delete_ticket_command(self):
         # after 0ms, switch to the delete ticket frame
-        self.after(0, self.switch_frame, "DeleteTicket")
-        print("Switching to delete ticket frame - not implemented yet")
+        #self.after(0, self.switch_frame, "DeleteTicket")
+        print("Switching to delete ticket frame - not implemented")
 
     # update ticket command
     def _update_ticket_command(self):
         # after 0ms, switch to the update ticket frame
-        self.after(0, self.switch_frame, "UpdateTicket")
-        print("Switching to update ticket frame - not implemented yet")
+        #self.after(0, self.switch_frame, "UpdateTicket")
+        print("Switching to update ticket frame - not implemented")
 
     # logout command
     def _back_command(self):
