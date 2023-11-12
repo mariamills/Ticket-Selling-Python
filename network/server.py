@@ -67,6 +67,10 @@ def establish_connection(client):
                     handle_logout()
                     break
 
+    # if there is a value error, print it and set command and data to None
+    except ValueError as err:
+        print(f"Value error: {err}")
+        command, data = None, None
     # if there is a connection error, print it
     except socket.error as err:
         print(f"Connection error: {err}")
