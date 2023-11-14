@@ -32,6 +32,7 @@ it closes the client socket connection (which is wanted) BUT,
 the server will not expect/accept anymore client socket connections from the same client  (which is NOT wanted).~~
   - ~~So, as a temporary fix, I changed logout to exit, which will close the client socket connection,~~ 
   - ~~but will also close the client program. This is not ideal, but it works for now.~~
+- If there is 1 ticket left and user buys it, the ticket is removed from the database completely and not added to the user's transactions as it should be.
 
 The issue was fixed by checking if the socket was offline before trying to login and if it was, then it will create a new socket connection.. such a simple fix but sadly so overlooked.
 
