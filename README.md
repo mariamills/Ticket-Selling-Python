@@ -102,7 +102,7 @@ Register an account or execute the included SQL script and use any of the follow
   -  **Yes, these account DO NOT meet the password requirements, but they are included for testing purposes. So they're made for convenience.**
 
 ## Video Demo
-To be added.
+[Here](https://www.youtube.com/watch?v=XQUFtFsd51M)
 
 ## Learnings
 Throughout the development of this application, we've gained invaluable insights into various aspects of software engineering and defensive programming. Here's a highlight of our key learnings:
@@ -137,8 +137,6 @@ Throughout the development of this application, we've gained invaluable insights
 Our application intentionally includes two vulnerabilities to serve as a teaching tool:
 
 - **Plaintext Passwords**: Storing passwords in plaintext poses a significant risk, as it allows anyone with database access to read user credentials.
-
-- **SQL Injection**: The application's initial susceptibility to SQL injection attacks could allow attackers to manipulate or corrupt the database.
 
 - **Unencrypted TCP Traffic**: Initially, our TCP traffic was unencrypted, making it vulnerable to interception and unauthorized access through programs like Wireshark.
 
