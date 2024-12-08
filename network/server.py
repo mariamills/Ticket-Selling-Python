@@ -10,8 +10,8 @@ from datetime import date
 load_dotenv()
 
 # get the host and port from the .env file
-HOST = os.getenv("DB_HOST")
-PORT = int(os.getenv("DB_PORT"))
+HOST = os.getenv("DB_HOST", "localhost")
+PORT = int(os.getenv("DB_PORT", "12345"))
 
 # path to the database - using the os module to get the path to the project directory, so it works on any machine
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'db', 'project.db')

@@ -8,8 +8,8 @@ from threading import Lock
 load_dotenv()
 
 # environment variables
-HOST = os.getenv("DB_HOST")
-PORT = int(os.getenv("DB_PORT"))
+HOST = os.getenv("DB_HOST", "localhost")
+PORT = int(os.getenv("DB_PORT", "12345"))
 
 # commands to send to the server
 COMMANDS = {
